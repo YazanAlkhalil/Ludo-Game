@@ -1,0 +1,62 @@
+from color import Color
+
+class Piece:
+    def __init__(self, color: Color, number: int):
+        self.color = color
+        self.number = number
+        self.position = -1  # -1 means in home base
+        self.is_home = True
+        
+    def get_next_position(self, steps):
+        """Calculate next position after moving given steps"""
+        if self.is_home:
+            if steps == 6:
+                return 0  # Start position
+            return -1
+        
+        next_pos = self.position + steps
+        if next_pos < 56:
+            return next_pos
+        return -1  # Invalid move
+    
+    def is_safe_at(self, position):
+        """Check if piece would be safe at given position"""
+        if position == -1:  # In home base
+            return True
+        return False  # سيتم التحقق من الأمان في Cell
+    
+    def move(self, steps):
+        """Move piece by given steps"""
+        next_pos = self.get_next_position(steps)
+        if next_pos != -1:
+            self.position = next_pos
+            self.is_home = False
+            return True
+        return False
+    
+    def is_in_end_zone(self):
+        """Check if piece is in its color's end zone"""
+        return self.position >= 50
+    
+    def can_move(self, steps, board):
+        """
+        Check if piece can move given steps according to rules:
+        - Can only leave home with a 6
+        - Cannot move through walls
+        - Must follow valid path
+        """
+        if self.is_home:
+            return steps == 6
+            
+        target_pos = self.position + steps
+        if target_pos >= 56:
+            return False
+            
+        # Check path for walls
+        for pos in range(self.position + 1, target_pos + 1):
+            cell = board.get_cell(pos)
+            if cell.is_wall() and cell.pieces[0].color != self.color:
+                return False
+                
+        return True
+  
