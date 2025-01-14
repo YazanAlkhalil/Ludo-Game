@@ -39,24 +39,18 @@ class Piece:
         return self.position >= 50
     
     def can_move(self, steps, board):
-        """
-        Check if piece can move given steps according to rules:
-        - Can only leave home with a 6
-        - Cannot move through walls
-        - Must follow valid path
-        """
+        """Check if piece can move given steps"""
         if self.is_home:
             return steps == 6
-            
-        target_pos = self.position + steps
-        if target_pos >= 56:
+        
+        next_pos = board.get_next_position(self.position, steps, self.color)
+        if next_pos == -1:
             return False
-            
-        # Check path for walls
-        for pos in range(self.position + 1, target_pos + 1):
-            cell = board.get_cell(pos)
-            if cell.is_wall() and cell.pieces[0].color != self.color:
-                return False
-                
-        return True
+        
+        # Allow movement into home path (positions >= 52)
+        if next_pos >= 52:
+            return True
+        
+        target_cell = board.get_cell(next_pos)
+        return target_cell and target_cell.can_move_to(self)
   

@@ -43,7 +43,8 @@ def main():
     # تقسيم players إلى قائمتين
     player_colors = [p[0] for p in players]
     is_computer = [p[1] for p in players]
-    
+    print(is_computer)
+    print(is_computer)
     # إنشاء اللعبة مع المعاملات الصحيحة
     game = Game(player_colors, is_computer)
     game.board.print_board()
@@ -53,7 +54,8 @@ def main():
         current_player = game.board.current_player
         dice_value = game.dice.roll()
         print(f"\nPlayer {current_player.color.value} rolled a {dice_value}")
-        
+        print(current_player.is_computer)
+        print(current_player.is_computer)
         if current_player.is_computer:
             game.computer_move()
         else:

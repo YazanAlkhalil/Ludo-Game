@@ -22,6 +22,16 @@ class Path:
     
     def _initialize_path(self):
         # Initialize safe spots on main track
+        safe_spots = [
+            self.start_position,  # Starting position
+            (self.start_position + 8) % 52,  # Safe spot before star
+            (self.start_position + 13) % 52,  # Star position
+            (self.home_entrance + 1) % 52  # Position before home path
+        ]
+        
+        for spot in safe_spots:
+            self.cells[spot].is_safe = True
+            self.cells[spot].color = self.color
         
         # Initialize home path (last 6 cells)
         for i in range(52, 58):

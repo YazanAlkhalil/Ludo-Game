@@ -7,7 +7,7 @@ from player import Player
 
 class Game:
     def __init__(self, player_colors, is_computer):
-        self.board = Board(player_colors[0], player_colors[1], is_computer[1])
+        self.board = Board(player_colors[0], player_colors[1], is_computer)
         self.state_manager = StateManager()
         self.dice = Dice()
         self.expectiminimax = Expectiminimax(depth=3)

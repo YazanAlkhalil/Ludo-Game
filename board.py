@@ -4,7 +4,7 @@ from color import Color
 from player import Player
 
 class Board:
-    def __init__(self, player_color: Color, computer_color: Color, is_computer: bool = False):
+    def __init__(self, player_color: Color, computer_color: Color, is_computer_list):
         # إنشاء المسار المشترك (52 خلية)
         self.cells = [Cell(Color.WHITE) for _ in range(52)]
         
@@ -21,8 +21,8 @@ class Board:
         self.computer_path = Path(computer_color)
         
         # إنشاء اللاعبين
-        self.player1 = Player(player_color, self.player_path, not is_computer)
-        self.player2 = Player(computer_color, self.computer_path, is_computer)
+        self.player1 = Player(player_color, self.player_path, is_computer_list[0])
+        self.player2 = Player(computer_color, self.computer_path, is_computer_list[1])
         
         # تحديد اللاعب الحالي
         self.current_player = self.player1
@@ -44,35 +44,35 @@ class Board:
         return None
 
     def get_next_position(self, current_pos: int, steps: int, color: Color) -> int:
-        """حساب الموقع التالي مع الأخذ بالاعتبار دوران المسار"""
-        path = self.paths[color]
-        start = path["start"]
-        end = path["end"]
+        """Calculate next position considering home path"""
+        path = self.player_path if color == self.player1.color else self.computer_path
         
-        # إذا كان في البداية
+        # If piece is in home base
         if current_pos == -1:
-            if steps == 6:  # يمكن الخروج فقط برقم 6
-                return start
+            if steps == 6:  # Can only move out with a 6
+                return path.start_position
             return -1
-
-        # حساب الموقع الجديد
-        new_pos = current_pos + steps
         
-        # التحقق من تجاوز نهاية المسار
-        if current_pos <= 51 and new_pos > 51:
-            # إذا وصل إلى 51، يجب أن يعود إلى بداية منطقته النهائية
-            remaining_steps = new_pos - 51 - 1
-            if color != Color.BLUE:  # الأزرق ينتهي عند 51
-                new_pos = (path["start"] - 1 + remaining_steps) % 52
-                if new_pos > end:  # تجاوز نهاية المسار
-                    return -1
-            else:
-                return -1
-                
-        return new_pos if new_pos <= 51 else -1
+        # Convert global position to local path position
+        local_pos = path.get_local_index(current_pos)
+        new_local_pos = local_pos + steps
+        
+        # Check if piece should enter home path
+        if path.can_enter_home(current_pos, steps):
+            # Get the deepest available spot in home path
+            return path.get_deepest_available_home_spot()
+        
+        # Convert back to global position
+        new_global_pos = path.get_global_index(new_local_pos)
+        
+        # Validate the position
+        if new_global_pos < 0 or new_global_pos > 51:
+            return -1
+        
+        return new_global_pos
 
     def print_board(self):
-        """Enhanced board printing with traditional Ludo cross layout"""
+        """Enhanced board printing with home paths"""
         COLORS = {
             Color.BLUE: '\033[94m',    # Blue
             Color.RED: '\033[91m',     # Red
@@ -82,16 +82,26 @@ class Board:
             'RESET': '\033[0m'         # Reset
         }
         
+        def format_home_cell(path, index):
+            """Format home path cell"""
+            if 52 <= index <= 57:
+                cell = path.cells[index]
+                if cell.pieces:
+                    piece = cell.pieces[0]
+                    return f"{COLORS[piece.color]}{piece.color.symbol}{COLORS['RESET']}"
+                return "·"
+            return " "
+        
         # Corrected board template with proper cross pattern
         board_template = [
             "                            ┌───┬───┬───┐       ",
             "                            │ {c49} │ {c50} │ {c51} │       ",
-            "                            ├───┼───┼───┤       ",
-            "                            │ {c48} │   │ {c0} │       ",
-            "                            ├───┼───┼───┤         ",
-            "                            │ {c47} │  ` │ {c1} │         ",
+            "                            ├───┼───{BLUE}┼───┤{RESET}       ",
+            "                            │ {c48} │ {h1} {BLUE}│ {c0} │{RESET}       ",
+            "                            ├───┼───{BLUE}┼───┤{RESET}         ",
+            "                            │ {c47} │ {h2} │ {c1} │         ",
             "         {YELLOW}YELLOW{RESET}             ├───┼───┼───┤              {BLUE}BLUE{RESET}",
-            "                            │ {c46} │   │ {c2} │         ",
+            "                            │ {c46} │ {h3} │ {c2} │         ",
             "                            ├───┼───┼───┤         ",
             "                            │ {c45} │   │ {c3} │         ",
             "                            ├───┼───┼───┤         ",
@@ -141,6 +151,10 @@ class Board:
         # Add numbered cells to the dictionary
         for i in range(52):
             cell_dict[f'c{i}'] = format_cell(i)
+        
+        # Add home path cells
+        for i in range(1, 7):
+            cell_dict[f'h{i}'] = format_home_cell(self.player_path, 51 + i)
         
         # Print the board
         print("\n=== LUDO GAME ===\n")
