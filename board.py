@@ -5,15 +5,26 @@ from player import Player
 
 class Board:
     def __init__(self, player_color: Color, computer_color: Color, is_computer_list):
-        # إنشاء المسار المشترك (52 خلية)
-        self.cells = [Cell(Color.WHITE) for _ in range(52)]
+        # Create the main path (52 cells) + home paths (20 cells)
+        self.cells = [Cell(Color.WHITE) for _ in range(72)]
         
-        # تعيين نقاط البداية والنهاية لكل لون
+        # Set home paths for each color (indices 52-71)
+        # Blue: 52-56, Red: 57-61, Green: 62-66, Yellow: 67-71
+        for i in range(52, 57):
+            self.cells[i].color = Color.BLUE
+        for i in range(57, 62):
+            self.cells[i].color = Color.RED
+        for i in range(62, 67):
+            self.cells[i].color = Color.GREEN
+        for i in range(67, 72):
+            self.cells[i].color = Color.YELLOW
+        
+        # Define paths with home path offsets
         self.paths = {
-            Color.BLUE: {"start": 0, "end": 51},
-            Color.RED: {"start": 13, "end": 12},
-            Color.GREEN: {"start": 26, "end": 25},
-            Color.YELLOW: {"start": 39, "end": 38}
+            Color.BLUE: {"start": 0, "end": 51, "home_start": 52},
+            Color.RED: {"start": 13, "end": 12, "home_start": 57},
+            Color.GREEN: {"start": 26, "end": 25, "home_start": 62},
+            Color.YELLOW: {"start": 39, "end": 38, "home_start": 67}
         }
         
         # إنشاء المسارات
@@ -38,38 +49,48 @@ class Board:
             self.cells[start_pos].is_safe = True
     
     def get_cell(self, position: int) -> Cell:
-        """الحصول على الخلية في الموقع المحدد"""
-        if 0 <= position < 52:
+        """Get the cell at the specified position"""
+        if 0 <= position < 72:  # Updated to include home paths
             return self.cells[position]
         return None
 
     def get_next_position(self, current_pos: int, steps: int, color: Color) -> int:
         """Calculate next position considering home path"""
-        path = self.player_path if color == self.player1.color else self.computer_path
+        path = self.paths[color]
         
         # If piece is in home base
         if current_pos == -1:
             if steps == 6:  # Can only move out with a 6
-                return path.start_position
+                return path["start"]
             return -1
         
-        # Convert global position to local path position
-        local_pos = path.get_local_index(current_pos)
-        new_local_pos = local_pos + steps
+        # If piece is already in home path
+        if current_pos >= 52:
+            new_pos = current_pos + steps
+            # Check if move stays within the color's home path range
+            home_end = path["home_start"] + 4
+            if new_pos <= home_end:
+                return new_pos
+            return -1
+        
+        # Calculate next position on main board
+        new_pos = current_pos + steps
         
         # Check if piece should enter home path
-        if path.can_enter_home(current_pos, steps):
-            # Get the deepest available spot in home path
-            return path.get_deepest_available_home_spot()
+        if color == Color.BLUE and current_pos <= 51 and new_pos > 51:
+            return path["home_start"] + (new_pos - 52)
+        elif color == Color.RED and current_pos <= 12 and new_pos > 12:
+            return path["home_start"] + (new_pos - 13)
+        elif color == Color.GREEN and current_pos <= 25 and new_pos > 25:
+            return path["home_start"] + (new_pos - 26)
+        elif color == Color.YELLOW and current_pos <= 38 and new_pos > 38:
+            return path["home_start"] + (new_pos - 39)
         
-        # Convert back to global position
-        new_global_pos = path.get_global_index(new_local_pos)
+        # Normal movement on main board
+        if new_pos > 51:
+            new_pos = new_pos - 52
         
-        # Validate the position
-        if new_global_pos < 0 or new_global_pos > 51:
-            return -1
-        
-        return new_global_pos
+        return new_pos
 
     def print_board(self):
         """Enhanced board printing with home paths"""
@@ -97,31 +118,31 @@ class Board:
             "                            ┌───┬───┬───┐       ",
             "                            │ {c49} │ {c50} │ {c51} │       ",
             "                            ├───┼───{BLUE}┼───┤{RESET}       ",
-            "                            │ {c48} │ {h1} {BLUE}│ {c0} │{RESET}       ",
+            "                            │ {c48} │ {c52} {BLUE}│ {c0} │{RESET}       ",
             "                            ├───┼───{BLUE}┼───┤{RESET}         ",
-            "                            │ {c47} │ {h2} │ {c1} │         ",
+            "                            │ {c47} │ {c53} │ {c1} │         ",
             "         {YELLOW}YELLOW{RESET}             ├───┼───┼───┤              {BLUE}BLUE{RESET}",
-            "                            │ {c46} │ {h3} │ {c2} │         ",
+            "                            │ {c46} │ {c54} │ {c2} │         ",
             "                            ├───┼───┼───┤         ",
-            "                            │ {c45} │   │ {c3} │         ",
+            "                            │ {c45} │ {c55} │ {c3} │         ",
             "                            ├───┼───┼───┤         ",
-            "                            │ {c44} │   │ {c4} │         ",
+            "                            │ {c44} │ {c56} │ {c4} │         ",
             "    ┌───┬───┬───┬───┬───┬───┼───┼───┼───┼───┬───┬───┬───┬───┐───┐    ",
             "    │ {c38} │ {c39} │ {c40} │ {c41} │ {c42} │ {c43} │   │   │   │ {c5} │ {c6} │ {c7} │ {c8} │ {c9} │ {c10} |    ",
             "    ├───┼───┼───┼───┼───┼───┼   ┼   ┼   ┼───┼───┼───┼───┼───┼───┤  ",
-            "    │ {c37} │   │   │   │   │   │   │   │   │   │   │   │   │   │ {c11} |    ",
+            "    │ {c37} │ {c67} │ {c68} │ {c69} │ {c70} │ {c71} │   │   │   │ {c61} │ {c60} │ {c59} │ {c58} │ {c57} │ {c10} |    ",
             "    ├───┼───┼───┼───┼───┼───┼   ┼   ┼   ┼───┼───┼───┼───┼───┼───┤  ",
             "    │ {c36} │ {c35} │ {c34} │ {c33} │ {c32} │ {c31} │   │   │   │ {c17} │ {c16} │ {c15} │ {c14} │ {c13} │ {c12} |    ",
             "    └───┴───┴───┴───┴───┴───┼───┼───┼───┼───┴───┴───┴───┴───┴───┘    ",
-            "                            │ {c30} │   │ {c18} │           ",
+            "                            │ {c30} │ {c66} │ {c18} │           ",
             "                            ├───┼───┼───┤           ",
-            "                            │ {c29} │   │ {c19} │           ",
+            "                            │ {c29} │ {c65} │ {c19} │           ",
             "                            ├───┼───┼───┤           ",
-            "                            │ {c28} │   │ {c20} │           ",
+            "                            │ {c28} │ {c64} │ {c20} │           ",
             "         {GREEN}GREEN{RESET}              ├───┼───┼───┤                 {RED}RED{RESET}   ",
-            "                            │ {c27} │   │ {c21} │            ",
+            "                            │ {c27} │ {c63} │ {c21} │            ",
             "                            ├───┼───┼───┤           ",
-            "                            │ {c26} │   │ {c22} │           ",
+            "                            │ {c26} │ {c62} │ {c22} │           ",
             "                            ├───┼───┼───┤           ",
             "                            │ {c25} │ {c24} │ {c23} │           ",
             "                            └───┴───┴───┘              "
@@ -137,6 +158,10 @@ class Board:
                 piece = cell.pieces[0]
                 return f"{COLORS[piece.color]}{piece.color.symbol}{COLORS['RESET']}"
             
+            # For home path cells (52-71), show a different symbol when empty
+            if cell_idx >= 52:
+                return f"{COLORS[cell.color]}○{COLORS['RESET']}"
+            
             return "·"
 
         # Create a dictionary for the template
@@ -148,13 +173,9 @@ class Board:
             'RESET': COLORS['RESET']
         }
         
-        # Add numbered cells to the dictionary
-        for i in range(52):
+        # Add all cells (0-71) to the dictionary
+        for i in range(72):
             cell_dict[f'c{i}'] = format_cell(i)
-        
-        # Add home path cells
-        for i in range(1, 7):
-            cell_dict[f'h{i}'] = format_home_cell(self.player_path, 51 + i)
         
         # Print the board
         print("\n=== LUDO GAME ===\n")
