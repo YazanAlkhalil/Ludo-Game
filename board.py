@@ -50,6 +50,7 @@ class Board:
     
     def get_cell(self, position: int) -> Cell:
         """Get the cell at the specified position"""
+        #TODO adjust the number of 72 (add)
         if 0 <= position < 72:  # Updated to include home paths
             return self.cells[position]
         return None
@@ -68,8 +69,9 @@ class Board:
         if current_pos >= 52:
             new_pos = current_pos + steps
             # Check if move stays within the color's home path range
-            home_end = path["home_start"] + 4
+            home_end = path["home_start"] + 5
             if new_pos <= home_end:
+
                 return new_pos
             return -1
         
@@ -89,6 +91,10 @@ class Board:
         # Normal movement on main board
         if new_pos > 51:
             new_pos = new_pos - 52
+
+
+        if new_pos == path["home_start"] + 5:
+            return -2  # Special value to indicate piece is done
         
         return new_pos
 
@@ -130,7 +136,7 @@ class Board:
             "    ┌───┬───┬───┬───┬───┬───┼───┼───┼───┼───┬───┬───┬───┬───┐───┐    ",
             "    │ {c38} │ {c39} │ {c40} │ {c41} │ {c42} │ {c43} │   │   │   │ {c5} │ {c6} │ {c7} │ {c8} │ {c9} │ {c10} |    ",
             "    ├───┼───┼───┼───┼───┼───┼   ┼   ┼   ┼───┼───┼───┼───┼───┼───┤  ",
-            "    │ {c37} │ {c67} │ {c68} │ {c69} │ {c70} │ {c71} │   │   │   │ {c61} │ {c60} │ {c59} │ {c58} │ {c57} │ {c10} |    ",
+            "    │ {c37} │ {c67} │ {c68} │ {c69} │ {c70} │ {c71} │   │   │   │ {c61} │ {c60} │ {c59} │ {c58} │ {c57} │ {c11} |    ",
             "    ├───┼───┼───┼───┼───┼───┼   ┼   ┼   ┼───┼───┼───┼───┼───┼───┤  ",
             "    │ {c36} │ {c35} │ {c34} │ {c33} │ {c32} │ {c31} │   │   │   │ {c17} │ {c16} │ {c15} │ {c14} │ {c13} │ {c12} |    ",
             "    └───┴───┴───┴───┴───┴───┼───┼───┼───┼───┴───┴───┴───┴───┴───┘    ",
@@ -202,6 +208,11 @@ class Board:
     def move_piece(self, piece, steps):
         """تحريك قطعة على اللوحة"""
         next_pos = self.get_next_position(piece.position, steps, piece.color)
+
+        if next_pos == -2:
+            piece.is_done = true
+            return False
+
         if next_pos == -1:
             return False
 

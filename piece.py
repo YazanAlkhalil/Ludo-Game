@@ -6,6 +6,7 @@ class Piece:
         self.number = number
         self.position = -1  # -1 means in home base
         self.is_home = True
+        self.is_done = False
         
     def get_next_position(self, steps):
         """Calculate next position after moving given steps"""
@@ -34,9 +35,6 @@ class Piece:
             return True
         return False
     
-    def is_in_end_zone(self):
-        """Check if piece is in its color's end zone"""
-        return self.position >= 50
     
     def can_move(self, steps, board):
         """Check if piece can move given steps"""

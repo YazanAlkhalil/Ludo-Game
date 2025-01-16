@@ -5,7 +5,7 @@ from color import Color
 class Player:
     def __init__(self, color: Color, path: Path, is_computer: bool = False):
         self.color = color
-        self.pieces = [Piece(color, i) for i in range(2)]  # Only 2 pieces per player
+        self.pieces = [Piece(color, i) for i in range(4)]  # Only 2 pieces per player
         self.path = path
         self.is_computer = is_computer
         
@@ -15,4 +15,4 @@ class Player:
     
     def is_winning(self):
         """Player wins when all pieces reach end zone"""
-        return all(piece.is_in_end_zone() for piece in self.pieces)
+        return all(piece.is_done for piece in self.pieces)
