@@ -159,12 +159,12 @@ class Board:
                 if piece_count > 0:
                     return f"{COLORS[cell.color]}{piece_count}{COLORS['RESET']}"
                 return f"{COLORS[cell.color]}0{COLORS['RESET']}"
-            
-            if cell.is_safe and cell_idx < 52:
-                return f"{COLORS[cell.color]}★{COLORS['RESET']}"
             if cell.pieces:
                 piece = cell.pieces[0]
                 return f"{COLORS[piece.color]}{piece.color.symbol}{COLORS['RESET']}"
+            
+            if cell.is_safe and cell_idx < 52:
+                return f"{COLORS[cell.color]}★{COLORS['RESET']}"
             
             if cell_idx >= 52:
                 return f"{COLORS[cell.color]}○{COLORS['RESET']}"
