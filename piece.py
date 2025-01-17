@@ -37,18 +37,50 @@ class Piece:
     
     
     def can_move(self, steps, board):
-        """Check if piece can move given steps"""
-        if self.is_home:
-            return steps == 6
+        """
+        Check if piece can make a valid move given the steps.
         
+        Args:
+            steps (int): Number of steps to move
+            board: Game board instance
+        
+        Returns:
+            bool: True if move is valid, False otherwise
+        """
+        # Case 1: Piece is in home base
+        if self.is_home:
+            return steps == 6  
+        
+        # Case 2: Calculate next position
         next_pos = board.get_next_position(self.position, steps, self.color)
         if next_pos == -1:
+            return False  
+        
+        # Get target cell
+        target_cell = board.get_cell(next_pos)
+        if not target_cell:
             return False
         
-        # Allow movement into home path (positions >= 52)
-        if next_pos >= 52:
-            return True
+        # Case 3: Check if any cell in path has a wall
+        current_pos = self.position
+        while current_pos < next_pos:
+            current_pos += 1
+            cell = board.get_cell(current_pos)
+            if cell and cell.is_wall():
+                return False
+                
+        # Check target cell wall
+        if target_cell.is_wall():
+            return target_cell.pieces[0].color == self.color
         
-        target_cell = board.get_cell(next_pos)
-        return target_cell and target_cell.can_move_to(self)
+        # Case 4: Check if target is a safe zone with opponent
+        #TODO see whether a wall generated in a safe cell
+        if target_cell.is_safe and target_cell.pieces and not target_cell.is_wall():
+            return True  
+        
+        # Case 5: Check home path (positions >= 52)
+        if next_pos >= 52:
+            return True  # Allow movement into home path
+        
+        return True  # All other cases are valid moves
   

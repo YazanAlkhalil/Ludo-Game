@@ -16,12 +16,3 @@ class Cell:
             return all(p.color == self.pieces[0].color for p in self.pieces)
         return False
     
-    def can_move_to(self, piece):
-        """Check if a piece can move to this cell"""
-        if not self.pieces:
-            return True
-            
-        if self.is_wall():
-            return piece.color == self.pieces[0].color
-            
-        return True 
