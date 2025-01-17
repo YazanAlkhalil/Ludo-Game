@@ -45,7 +45,7 @@ class Game:
                 if 0 <= choice < len(valid_moves):
                     piece, steps = valid_moves[choice]
                     self.board.move_piece(piece, steps)
-                    # Save state after move
+                    
                     move = Move(piece=piece, steps=steps)
                     self.state_manager.save_state(self.board, self.board.current_player, move, cost=0)
                     break
