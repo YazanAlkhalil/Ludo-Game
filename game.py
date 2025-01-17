@@ -1,10 +1,3 @@
-from board import Board
-from state import State, StateManager
-from color import Color
-from dice import Dice
-from expectiminimax import Expectiminimax, Move
-from player import Player
-
 class Game:
     def __init__(self, player_colors, is_computer):
         self.board = Board(player_colors[0], player_colors[1], is_computer)
@@ -36,7 +29,6 @@ class Game:
             self.state_manager.save_state(self.board, self.board.current_player, best_move, cost=0)
         else:
             print("Computer has no valid moves")
-    
     def player_move(self, player: Player, dice_value: int):
         valid_moves = self.board.get_valid_moves(player, dice_value)
         if not valid_moves:
