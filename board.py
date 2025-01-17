@@ -19,7 +19,7 @@ class Board:
             Color.BLUE: {"start": 0, "end": 51, "home_start": 52},
             Color.RED: {"start": 13, "end": 11, "home_start": 58},
             Color.GREEN: {"start": 26, "end": 24, "home_start": 64},
-            Color.YELLOW: {"start": 39, "end": 37, "home_start": 70}
+            Color.YELLOW: {"start": 39, "end": 38, "home_start": 70}
         }
         
         '''
@@ -77,12 +77,12 @@ class Board:
         # Check if piece should enter home path
         if color == Color.BLUE and current_pos <= 51 and new_pos > 51:
             return path["home_start"] + (new_pos - 52)
-        elif color == Color.RED and current_pos < 12 and new_pos > 12:
-            return path["home_start"] + (new_pos - 13)
-        elif color == Color.GREEN and current_pos < 25 and new_pos > 25:
-            return path["home_start"] + (new_pos - 26)
-        elif color == Color.YELLOW and current_pos < 38 and new_pos > 38:
-            return path["home_start"] + (new_pos - 39)
+        elif color == Color.RED and current_pos < 12 and new_pos >= 12:
+            return path["home_start"] + (new_pos - 12)
+        elif color == Color.GREEN and current_pos < 25 and new_pos >= 25:
+            return path["home_start"] + (new_pos - 25)
+        elif color == Color.YELLOW and current_pos < 38 and new_pos >= 38:
+            return path["home_start"] + (new_pos - 38)
         
         # Normal movement on main board
         if new_pos > 51:
