@@ -9,7 +9,7 @@ class Cell:
     def is_wall(self):
         """
         A wall is formed when:
-        - Two or more pieces of same color are on the cell
+        - Two or more pieces of the same color are on the cell
         - Cannot be crossed by opponent
         """
         if len(self.pieces) >= 2:

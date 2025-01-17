@@ -66,7 +66,7 @@ class Piece:
         while current_pos < next_pos:
             current_pos += 1
             cell = board.get_cell(current_pos)
-            if cell and cell.is_wall():
+            if cell and cell.is_wall() and current_pos <= 51:
                 return False
                 
         # Check target cell wall
@@ -74,13 +74,11 @@ class Piece:
             return target_cell.pieces[0].color == self.color
         
         # Case 4: Check if target is a safe zone with opponent
-        #TODO see whether a wall generated in a safe cell
         if target_cell.is_safe and target_cell.pieces and not target_cell.is_wall():
             return True  
+
         
-        # Case 5: Check home path (positions >= 52)
-        if next_pos >= 52:
-            return True  # Allow movement into home path
+        
         
         return True  # All other cases are valid moves
   

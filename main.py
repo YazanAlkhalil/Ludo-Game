@@ -67,6 +67,10 @@ def main():
         
         game.board.print_board()
         
+        print("\nChecking if player has won:")
+        for piece in current_player.pieces:
+            print(f"Piece {piece.number} - Position: {piece.position}, Done: {piece.is_done}")
+
         if current_player.is_winning():
             print(f"\nPlayer {current_player.color.value} wins!")
             break

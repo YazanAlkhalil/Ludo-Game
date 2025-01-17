@@ -16,10 +16,10 @@ class Board:
             self.cells[i].color = Color.YELLOW
         
         self.paths = {
-            Color.BLUE: {"start": 0, "end": 51, "home_start": 52},
-            Color.RED: {"start": 13, "end": 12, "home_start": 58},
-            Color.GREEN: {"start": 26, "end": 25, "home_start": 64},
-            Color.YELLOW: {"start": 39, "end": 38, "home_start": 70}
+            Color.BLUE: {"start": 0, "end": 50, "home_start": 52},
+            Color.RED: {"start": 13, "end": 11, "home_start": 58},
+            Color.GREEN: {"start": 26, "end": 24, "home_start": 64},
+            Color.YELLOW: {"start": 39, "end": 37, "home_start": 70}
         }
         
         '''
@@ -62,27 +62,24 @@ class Board:
                 return path["start"]
             return -1
         
+        # Calculate next position on main board
+        new_pos = current_pos + steps
+        
         # If piece is already in home path
-        if current_pos >= 52:
-            new_pos = current_pos + steps
+        if current_pos >= path["home_start"]:
             # Check if move stays within the color's home path range
             home_end = path["home_start"] + 5
             if new_pos <= home_end:
                 return new_pos
             return -1
         
-        # Calculate next position on main board
-        new_pos = current_pos + steps
-        
         # Check if piece should enter home path
-        if color == Color.BLUE and current_pos < 51 and new_pos >= 51:
-            return path["home_start"] + (new_pos - 51)
-        elif color == Color.RED and current_pos < 12 and new_pos >= 12:
-            return path["home_start"] + (new_pos - 12)
-        elif color == Color.GREEN and current_pos < 25 and new_pos >= 25:
-            return path["home_start"] + (new_pos - 25)
-        elif color == Color.YELLOW and current_pos < 38 and new_pos >= 38:
-            return path["home_start"] + (new_pos - 38)
+        if new_pos > path["end"] and current_pos <= path["end"]:
+            overflow = new_pos - path["end"] - 1
+            home_pos = path["home_start"] + overflow
+            if home_pos <= path["home_start"] + 5:
+                return home_pos
+            return -1
         
         # Normal movement on main board
         if new_pos > 51:
@@ -160,11 +157,14 @@ class Board:
                     return f"{COLORS[cell.color]}{piece_count}{COLORS['RESET']}"
                 return f"{COLORS[cell.color]}0{COLORS['RESET']}"
             
-            if cell.is_safe and cell_idx < 52:
-                return f"{COLORS[cell.color]}★{COLORS['RESET']}"
+            # Display piece if present, even on safe cells
             if cell.pieces:
                 piece = cell.pieces[0]
                 return f"{COLORS[piece.color]}{piece.color.symbol}{COLORS['RESET']}"
+            
+            # Display safe cell symbol if no piece is present
+            if cell.is_safe and cell_idx < 52:
+                return f"{COLORS[cell.color]}★{COLORS['RESET']}"
             
             if cell_idx >= 52:
                 return f"{COLORS[cell.color]}○{COLORS['RESET']}"
@@ -202,6 +202,7 @@ class Board:
 
     def move_piece(self, piece, steps):
         next_pos = self.get_next_position(piece.position, steps, piece.color)
+        path = self.paths[piece.color]
         
         if not piece.can_move(steps, self):
             return False
@@ -231,6 +232,10 @@ class Board:
         new_cell.pieces.append(piece)
         piece.position = next_pos
         piece.is_home = False
+
+        # piece reached end
+        if next_pos == path['home_start'] + 5:
+            piece.is_done = True
         
         return  captured_opponent
 
