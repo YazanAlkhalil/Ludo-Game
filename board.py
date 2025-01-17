@@ -17,8 +17,8 @@ class Board:
         
         self.paths = {
             Color.BLUE: {"start": 0, "end": 51, "home_start": 52},
-            Color.RED: {"start": 13, "end": 11, "home_start": 58},
-            Color.GREEN: {"start": 26, "end": 24, "home_start": 64},
+            Color.RED: {"start": 13, "end": 12, "home_start": 58},
+            Color.GREEN: {"start": 26, "end": 25, "home_start": 64},
             Color.YELLOW: {"start": 39, "end": 38, "home_start": 70}
         }
         
@@ -75,8 +75,8 @@ class Board:
         new_pos = current_pos + steps
         
         # Check if piece should enter home path
-        if color == Color.BLUE and current_pos <= 51 and new_pos > 51:
-            return path["home_start"] + (new_pos - 52)
+        if color == Color.BLUE and current_pos < 51 and new_pos >= 51:
+            return path["home_start"] + (new_pos - 51)
         elif color == Color.RED and current_pos < 12 and new_pos >= 12:
             return path["home_start"] + (new_pos - 12)
         elif color == Color.GREEN and current_pos < 25 and new_pos >= 25:
@@ -116,9 +116,9 @@ class Board:
         board_template = [
             "                            ┌───┬───┬───┐       ",
             "                            │ {c49} │ {c50} │ {c51} │       ",
-            "                            ├───┼───{BLUE}┼───┤{RESET}       ",
-            "                            │ {c48} │ {c52} {BLUE}│ {c0} │{RESET}       ",
-            "                            ├───┼───{BLUE}┼───┤{RESET}         ",
+            "                            ├───┼───┼───┤       ",
+            "                            │ {c48} │ {c52} │ {c0} │       ",
+            "                            ├───┼───┼───┤         ",
             "                            │ {c47} │ {c53} │ {c1} │         ",
             "         {YELLOW}YELLOW{RESET}             ├───┼───┼───┤              {BLUE}BLUE{RESET}",
             "                            │ {c46} │ {c54} │ {c2} │         ",
@@ -160,6 +160,8 @@ class Board:
                     return f"{COLORS[cell.color]}{piece_count}{COLORS['RESET']}"
                 return f"{COLORS[cell.color]}0{COLORS['RESET']}"
             
+            if cell.is_safe and cell_idx < 52:
+                return f"{COLORS[cell.color]}★{COLORS['RESET']}"
             if cell.pieces:
                 piece = cell.pieces[0]
                 return f"{COLORS[piece.color]}{piece.color.symbol}{COLORS['RESET']}"
@@ -212,7 +214,7 @@ class Board:
         
         captured_opponent = False
         # Check if we're capturing an opponent's piece
-        if new_cell.pieces and new_cell.pieces[0].color != piece.color:
+        if new_cell.pieces and new_cell.pieces[0].color != piece.color and not new_cell.is_safe:
             captured_piece = new_cell.pieces[0]
             captured_piece.position = -1  # Send back to home
             captured_piece.is_home = True
@@ -236,25 +238,16 @@ class Board:
         """Get all valid moves for the current player"""
         valid_moves = []
         
-        # If no pieces on board and rolled 6, must bring piece out
-        pieces_on_board = [p for p in player.pieces if not p.is_home]
-        if not pieces_on_board and dice_value == 6:
-            home_pieces = [p for p in player.pieces if p.is_home]
-            for piece in home_pieces:
-                valid_moves.append((piece, dice_value))
-            return valid_moves
+        # # If no pieces on board and rolled 6, must bring piece out
+        # pieces_on_board = [p for p in player.pieces if not p.is_home]
+        # if not pieces_on_board and dice_value == 6:
+        #     home_pieces = [p for p in player.pieces if p.is_home]
+        #     for piece in home_pieces:
+        #         valid_moves.append((piece, dice_value))
+        #     return valid_moves
         
         # Check each piece for valid moves
         for piece in player.pieces:
-            if piece.can_move(dice_value, self):
-                next_pos = self.get_next_position(piece.position, dice_value, piece.color)
-                target_cell = self.get_cell(next_pos)
-                
-                # Skip if target cell is a safe zone occupied by opponent
-                if target_cell.is_safe and target_cell.pieces and \
-                   target_cell.pieces[0].color != piece.color:
-                    continue
-                    
+            if piece.can_move(dice_value, self):                    
                 valid_moves.append((piece, dice_value))
-        
         return valid_moves
