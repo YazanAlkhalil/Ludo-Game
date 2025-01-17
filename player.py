@@ -1,12 +1,12 @@
-from path import Path
+
 from piece import Piece
 from color import Color
 
 class Player:
-    def __init__(self, color: Color, path: Path, is_computer: bool = False):
+    def __init__(self, color: Color, is_computer: bool = False):
         self.color = color
         self.pieces = [Piece(color, i) for i in range(4)]  
-        self.path = path
+      
         self.is_computer = is_computer
         
     def has_valid_moves(self, dice_value, board):

@@ -37,25 +37,32 @@ def setup_game():
     return players
 
 def main():
+     
     # Get player setup
     players = setup_game()
     
     # تقسيم players إلى قائمتين
     player_colors = [p[0] for p in players]
     is_computer = [p[1] for p in players]
-    print(is_computer)
-    print(is_computer)
+    
     # إنشاء اللعبة مع المعاملات الصحيحة
     game = Game(player_colors, is_computer)
     game.board.print_board()
     consecutive_rolls = 0   
+    COLORS = {
+        Color.BLUE: '\033[94m',    # Blue
+        Color.RED: '\033[91m',     # Red
+        Color.GREEN: '\033[92m',   # Green
+        Color.YELLOW: '\033[93m',  # Yellow
+        Color.WHITE: '\033[97m',   # White
+        'RESET': '\033[0m'         # Reset
+    }
     
     while True:
         current_player = game.board.current_player
         dice_value = game.dice.roll()
-        print(f"\nPlayer {current_player.color.value} rolled a {dice_value}")
-        print(current_player.is_computer)
-        print(current_player.is_computer)
+        print(f"\nPlayer {COLORS[current_player.color]}{current_player.color.value}{COLORS['RESET']} rolled a {dice_value}")
+        
         if current_player.is_computer:
             game.computer_move()
         else:
@@ -67,9 +74,7 @@ def main():
         
         game.board.print_board()
         
-        print("\nChecking if player has won:")
-        for piece in current_player.pieces:
-            print(f"Piece {piece.number} - Position: {piece.position}, Done: {piece.is_done}")
+        
 
         if current_player.is_winning():
             print(f"\nPlayer {current_player.color.value} wins!")

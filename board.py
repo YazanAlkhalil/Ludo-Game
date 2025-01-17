@@ -1,5 +1,4 @@
 from cell import Cell
-from path import Path
 from color import Color
 from player import Player
 
@@ -26,12 +25,11 @@ class Board:
         #TODO 
         why to add them
         '''
-        self.player_path = Path(player_color)
-        self.computer_path = Path(computer_color)
+        
         
         # إنشاء اللاعبين
-        self.player1 = Player(player_color, self.player_path, is_computer_list[0])
-        self.player2 = Player(computer_color, self.computer_path, is_computer_list[1])
+        self.player1 = Player(player_color, is_computer_list[0])
+        self.player2 = Player(computer_color, is_computer_list[1])
         
         # تحديد اللاعب الحالي
         self.current_player = self.player1
@@ -157,10 +155,10 @@ class Board:
                     return f"{COLORS[cell.color]}{piece_count}{COLORS['RESET']}"
                 return f"{COLORS[cell.color]}0{COLORS['RESET']}"
             
-            # Display piece if present, even on safe cells
+            # Display piece number if present
             if cell.pieces:
                 piece = cell.pieces[0]
-                return f"{COLORS[piece.color]}{piece.color.symbol}{COLORS['RESET']}"
+                return f"{COLORS[piece.color]}{piece.number + 1}{COLORS['RESET']}"
             
             # Display safe cell symbol if no piece is present
             if cell.is_safe and cell_idx < 52:
@@ -186,8 +184,6 @@ class Board:
         for line in board_template:
             print(line.format(**cell_dict))
         
-        print("\nCurrent Player:", 
-              f"{COLORS[self.current_player.color]}{self.current_player.color.value}{COLORS['RESET']}")
         
         print("\nPieces in home:")
         for player in [self.player1, self.player2]:

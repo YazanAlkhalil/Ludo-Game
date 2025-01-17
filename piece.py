@@ -63,22 +63,12 @@ class Piece:
         
         # Case 3: Check if any cell in path has a wall
         current_pos = self.position
-        while current_pos < next_pos:
-            current_pos += 1
+        while current_pos != next_pos:
+            current_pos = board.get_next_position(current_pos, 1, self.color)
             cell = board.get_cell(current_pos)
-            if cell and cell.is_wall() and current_pos <= 51:
-                return False
-                
-        # Check target cell wall
-        if target_cell.is_wall():
-            return target_cell.pieces[0].color == self.color
-        
-        # Case 4: Check if target is a safe zone with opponent
-        if target_cell.is_safe and target_cell.pieces and not target_cell.is_wall():
-            return True  
+            if cell and cell.is_wall():
+                return cell.pieces[0].color == self.color
 
-        
-        
         
         return True  # All other cases are valid moves
   
