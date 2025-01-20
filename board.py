@@ -197,16 +197,22 @@ class Board:
         self.current_player = self.player2 if self.current_player == self.player1 else self.player1
 
     def move_piece(self, piece, steps):
+        print(f"Moving piece {piece.number} with {steps} steps  ss")
+        print(f"piece position {piece.position}")
         next_pos = self.get_next_position(piece.position, steps, piece.color)
         path = self.paths[piece.color]
         
         if not piece.can_move(steps, self):
+            print('piece cantmove')
             return False
         # Check if move is valid
         old_pos = piece.position
         new_cell = self.get_cell(next_pos)
+
+
         
         if not new_cell:
+            print('not cell')
             return False
         
         captured_opponent = False
@@ -239,16 +245,10 @@ class Board:
         """Get all valid moves for the current player"""
         valid_moves = []
         
-        # # If no pieces on board and rolled 6, must bring piece out
-        # pieces_on_board = [p for p in player.pieces if not p.is_home]
-        # if not pieces_on_board and dice_value == 6:
-        #     home_pieces = [p for p in player.pieces if p.is_home]
-        #     for piece in home_pieces:
-        #         valid_moves.append((piece, dice_value))
-        #     return valid_moves
-        
         # Check each piece for valid moves
         for piece in player.pieces:
-            if piece.can_move(dice_value, self):                    
+            if piece.can_move(dice_value, self):
                 valid_moves.append((piece, dice_value))
+                print(f"Piece {piece.number} can move")  # Debug print
+        
         return valid_moves

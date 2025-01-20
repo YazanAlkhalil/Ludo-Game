@@ -71,4 +71,19 @@ class Piece:
 
         
         return True  # All other cases are valid moves
+    
+    def is_in_end_zone(self):
+        """Check if piece is in its color's end zone"""
+        if self.is_done:
+            return True
+            
+        # Define end zone positions for each color
+        end_zones = {
+            Color.BLUE: range(52, 58),
+            Color.RED: range(58, 64),
+            Color.GREEN: range(64, 70),
+            Color.YELLOW: range(70, 76)
+        }
+        
+        return self.position in end_zones.get(self.color, [])
   

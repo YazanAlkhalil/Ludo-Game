@@ -3,12 +3,20 @@ import copy
 class State:
     def __init__(self, board, player, action=None, cost=0, depth=0, parent=None):
         self.board = copy.deepcopy(board)
-        self.current_player = player
+        self.current_player = copy.deepcopy(player)
         self.action = action
         self.cost = cost
         self.depth = depth
         self.parent = parent
-        self.dice_value = None  # سيتم تعيينه لاحقاً إذا لزم الأمر
+        self.dice_value = None
+        
+        # Ensure pieces in cells reference the copied pieces
+        for piece in self.current_player.pieces:
+            if piece.position != -1:
+                cell = self.board.get_cell(piece.position)
+                if cell:
+                    cell.pieces = [p for p in cell.pieces if p.color != piece.color]
+                    cell.pieces.append(piece)
 
 class StateManager:
     def __init__(self):

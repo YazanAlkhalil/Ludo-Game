@@ -63,13 +63,13 @@ def main():
         dice_value = game.dice.roll()
         print(f"\nPlayer {COLORS[current_player.color]}{current_player.color.value}{COLORS['RESET']} rolled a {dice_value}")
         
-        if current_player.is_computer:
-            game.computer_move()
-        else:
-            valid_moves = game.board.get_valid_moves(current_player, dice_value)
-            if valid_moves:
-                game.player_move(current_player, dice_value)
+        valid_moves = game.board.get_valid_moves(current_player, dice_value)
+        if valid_moves:
+            if current_player.is_computer:
+                game.computer_move(current_player, dice_value)
             else:
+                game.player_move(current_player, dice_value)
+        else:
                 print("No valid moves available")
         
         game.board.print_board()
