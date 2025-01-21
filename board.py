@@ -249,6 +249,5 @@ class Board:
         for piece in player.pieces:
             if piece.can_move(dice_value, self):
                 valid_moves.append((piece, dice_value))
-                print(f"Piece {piece.number} can move")  # Debug print
         
         return valid_moves

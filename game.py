@@ -21,7 +21,6 @@ class Game:
         
         # Get valid moves
         valid_moves = self.board.get_valid_moves(current_player, dice_value)
-        print(f"Valid moves: {valid_moves}")
         
         if not valid_moves:
             print("Computer has no valid moves available.")
@@ -70,16 +69,6 @@ class Game:
                 move = Move(piece=piece, steps=steps)
                 self.state_manager.save_state(self.board, current_player, move, cost=0)
                 
-                # Print updated board
-                print("\n=== LUDO GAME ===\n")
-                self.board.print_board()
-                
-                # Print pieces in home
-                print("\nPieces in home:")
-                for p in [self.board.player1, self.board.player2]:
-                    home_pieces = [f"P{piece.number}" for piece in p.pieces if piece.is_home]
-                    print(f"{p.color.value}: {', '.join(home_pieces)}")
-                
             except Exception as e:
                 print(f"Error in computer move: {e}")
     
@@ -91,7 +80,7 @@ class Game:
         
         # Display valid moves
         for idx, (piece, steps) in enumerate(valid_moves):
-            print(f"{idx}: Move piece {piece.number} by {steps} steps")
+            print(f"{idx}: Move piece {piece.number + 1} by {steps} steps")
         
         while True:
             try:

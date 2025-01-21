@@ -15,22 +15,20 @@ class Expectiminimax:
         self.max_score = float('inf')
         self.min_score = float('-inf')
 
-    def find_best_move(self, state: Optional[State]) -> Optional[Move]:
+    def find_best_move(self, state: State) -> Optional[Move]:
         if not state:
             return None
             
-        current_player = state.current_player
-        valid_moves = self._get_valid_moves(state)
-        
+        valid_moves = state.get_valid_moves()
         if not valid_moves:
             return None
             
         best_move = None
         best_score = self.min_score
         
-        for move in valid_moves:
-            # Simulate move
-            new_state = self._apply_move(state, move)
+        for piece, steps in valid_moves:
+            move = Move(piece=piece, steps=steps)
+            new_state = state.apply_move(move)
             score = self._expectiminimax(new_state, self.depth - 1, False)
             
             if score > best_score:
@@ -40,7 +38,7 @@ class Expectiminimax:
         return best_move
     
     def _expectiminimax(self, state: State, depth: int, is_max: bool) -> float:
-        if depth == 0 or self._is_terminal(state):
+        if depth == 0 or state.is_terminal():
             return self._evaluate(state)
             
         if is_max:
@@ -49,112 +47,85 @@ class Expectiminimax:
             return self._chance_value(state, depth)
     
     def _max_value(self, state: State, depth: int) -> float:
-        valid_moves = self._get_valid_moves(state)
+        valid_moves = state.get_valid_moves()
         if not valid_moves:
             return self._evaluate(state)
             
-        value = self.min_score
-        for move in valid_moves:
-            new_state = self._apply_move(state, move)
-            value = max(value, self._expectiminimax(new_state, depth - 1, False))
-        return value
+        return max(
+            self._expectiminimax(state.apply_move(Move(piece, steps)), depth - 1, False)
+            for piece, steps in valid_moves
+        )
     
     def _chance_value(self, state: State, depth: int) -> float:
-        # Simulate dice rolls
-        total_value = 0
-        for dice_value in range(1, 7):  # 1 to 6
-            # Probability of each dice value is 1/6
-            prob = 1.0 / 6.0
-            new_state = self._apply_dice_roll(state, dice_value)
-            value = self._expectiminimax(new_state, depth - 1, True)
-            total_value += prob * value
-        return total_value
-    
-    def _get_valid_moves(self, state: State) -> list[Move]:
-        """Get all valid moves for current state"""
-        valid_moves = []
-        current_player = state.current_player
-        if hasattr(state.board, 'get_valid_moves'):
-            # Assuming dice value of 6 for now - this should be improved
-            moves = state.board.get_valid_moves(current_player, state.dice_value)
-            for piece, steps in moves:
-                valid_moves.append(Move(piece=piece, steps=steps))
-        return valid_moves
-    
-    def _apply_move(self, state: State, move: Move) -> State:
-        """Apply move to state and return new state"""
-        # Create a deep copy of the current state
-        new_state = copy.deepcopy(state)
-        
-        # Find the piece in the new state
-        new_piece = None
-        for piece in new_state.current_player.pieces:
-            if piece.number == move.piece.number:
-                new_piece = piece
-                break
-        
-        if new_piece:
-            print(f"Applying move for piece {new_piece.number}: from pos={new_piece.position}")  # Debug print
-            # Get the old position
-            old_pos = new_piece.position
-            
-            # Remove piece from old position if it's on the board
-            if old_pos != -1:
-                old_cell = new_state.board.get_cell(old_pos)
-                if old_cell and new_piece in old_cell.pieces:
-                    old_cell.pieces.remove(new_piece)
-            
-            # Calculate new position
-            next_pos = new_state.board.get_next_position(old_pos, move.steps, new_piece.color)
-            print(f"Next position calculated: {next_pos}")  # Debug print
-            
-            # Add piece to new position if valid
-            if next_pos != -1:
-                new_cell = new_state.board.get_cell(next_pos)
-                if new_cell:
-                    # Handle capturing
-                    if new_cell.pieces and new_cell.pieces[0].color != new_piece.color and not new_cell.is_safe:
-                        captured_piece = new_cell.pieces[0]
-                        captured_piece.position = -1
-                        captured_piece.is_home = True
-                        new_cell.pieces.clear()
-                    
-                    new_cell.pieces.append(new_piece)
-                    new_piece.position = next_pos
-                    new_piece.is_home = False
-                    
-                    # Check if piece reached end zone
-                    path = new_state.board.paths[new_piece.color]
-                    if next_pos == path['home_start'] + 5:
-                        new_piece.is_done = True
-            
-            print(f"After move: piece {new_piece.number} at pos={new_piece.position}")  # Debug print
-        
-        return new_state
-    
-    def _is_terminal(self, state: State) -> bool:
-        """Check if state is terminal (game over)"""
-        return state.current_player.is_winning()
+        return sum(
+            (1.0/6.0) * self._expectiminimax(state.apply_dice_roll(dice_value), depth - 1, True)
+            for dice_value in range(1, 7)
+        )
     
     def _evaluate(self, state: State) -> float:
-        """Evaluate state and return score"""
-        # Simple evaluation: count pieces in end zone
-        score = 0
+        """Evaluate state and return score based on multiple factors"""
+        score = 0.0
         current_player = state.current_player
+        
+        # Weight factors
+        PIECE_VALUE = 10.0
+        DISTANCE_WEIGHT = 0.5
+        SAFETY_BONUS = 5.0
+        WINNING_BONUS = 1000.0
+        HOME_PENALTY = -2.0
+        
+        # Check for winning state
+        if current_player.is_winning():
+            return WINNING_BONUS
+            
         for piece in current_player.pieces:
-            if piece.is_in_end_zone():
-                score += 1
-        return float(score)
-    def _apply_dice_roll(self, state: State, dice_value: int) -> State:
-        """Apply dice roll to state and return new state"""
-        # Create a deep copy of the current state
-        new_state = copy.deepcopy(state)
+            # Base points for pieces in end zone
+            if piece.is_done:
+                score += PIECE_VALUE
+                continue
+                
+            # Penalty for pieces still at home
+            if piece.is_home:
+                score += HOME_PENALTY
+                continue
+                
+            # Calculate progress along path
+            path = state.board.paths[piece.color]
+            total_distance = path['home_start'] + 6  # Including end zone
+            current_distance = piece.position
+            if current_distance > 0:  # Only for pieces on board
+                progress = current_distance / total_distance
+                score += DISTANCE_WEIGHT * progress * PIECE_VALUE
+            
+            # Bonus for pieces in safe spots
+            cell = state.board.get_cell(piece.position)
+            if cell and cell.is_safe:
+                score += SAFETY_BONUS
+                
+            # Consider threats from opponents
+            threat_penalty = self._calculate_threats(state, piece)
+            score -= threat_penalty
+            
+        return score
+
+    def _calculate_threats(self, state: State, piece: any) -> float:
+        """Calculate threat level for a given piece"""
+        THREAT_WEIGHT = 3.0
+        threat_score = 0.0
         
-        # Set the dice value in the new state
-        new_state.dice_value = dice_value
+        if piece.is_home or piece.is_done:
+            return 0.0
+            
+        # Get all opponent pieces
+        for player in state.players:
+            if player != state.current_player:
+                for opp_piece in player.pieces:
+                    if not opp_piece.is_home and not opp_piece.is_done:
+                        # Calculate distance to opponent piece
+                        distance = abs(piece.position - opp_piece.position)
+                        if distance <= 6:  # Maximum dice roll
+                            threat_score += (6 - distance) * THREAT_WEIGHT
         
-        # Update valid moves based on the new dice value
-        valid_moves = self._get_valid_moves(new_state)
-        new_state.valid_moves = valid_moves
-        
-        return new_state
+        return threat_score
+
+  
