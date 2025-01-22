@@ -9,7 +9,7 @@ class State:
             copy.deepcopy(self.board.player2)
         ]
         self.dice_value = dice_value
-        self.parent = parent  # Track parent state
+        self.parent = parent  
         self._sync_pieces_with_board()
     
     def _sync_pieces_with_board(self):

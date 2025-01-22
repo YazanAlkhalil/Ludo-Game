@@ -94,8 +94,12 @@ class Game:
                 if 0 <= choice < len(valid_moves):
                     piece, steps = valid_moves[choice]
                     captured = self.board.move_piece(piece, steps)
-                    
-                    self.state_manager.save_state(self.board, self.board.current_player)
+                    state = State(
+                        board= self.board,
+                        player=self.board.current_player,
+                        dice_value=dice_value
+                    )
+                    self.state_manager.save_state(state)
 
                     return captured
                     break
