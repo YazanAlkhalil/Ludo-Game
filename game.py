@@ -26,13 +26,16 @@ class Game:
             print("Computer has no valid moves available.")
             return
         
+        # Get the previous state if it exists
+        previous_state = self.state_manager.get_last_state()
+        
         # Create a new state for the current board position
         current_state = State(
             board=self.board,
             player=current_player,
-            
+            parent=previous_state,  # Link to previous state
+            dice_value=dice_value   # Set current dice value
         )
-        current_state.dice_value = dice_value
         
         # Find best move using expectiminimax
         best_move = self.expectiminimax.find_best_move(current_state)
@@ -60,10 +63,17 @@ class Game:
             
             try:
                 # Make the move
-                self.board.move_piece(piece, steps)
+                captured = self.board.move_piece(piece, steps)
                 
-                # Save the state
-                self.state_manager.save_state(self.board, current_player)
+                # Create and save the new state after the move
+                new_state = State(
+                    board=self.board,
+                    player=current_player,
+                    parent=current_state,
+                    dice_value=dice_value
+                )
+                self.state_manager.save_state(new_state)
+                return captured
                 
             except Exception as e:
                 print(f"Error in computer move: {e}")
@@ -83,9 +93,11 @@ class Game:
                 choice = int(input("Select move: "))
                 if 0 <= choice < len(valid_moves):
                     piece, steps = valid_moves[choice]
-                    self.board.move_piece(piece, steps)
+                    captured = self.board.move_piece(piece, steps)
                     
                     self.state_manager.save_state(self.board, self.board.current_player)
+
+                    return captured
                     break
                 else:
                     print("Invalid choice. Please try again.")

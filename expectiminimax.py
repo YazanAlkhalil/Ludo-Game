@@ -110,8 +110,14 @@ class Expectiminimax:
         for dice_value in range(1, 7):
             probability = 1/6
             new_state = state.apply_dice_roll(dice_value)
-            # Determine next node type based on the player turn
-            next_node_type = NodeType.MAX if new_state.current_player == self.player else NodeType.MIN
+            
+            # Check if it's still the same player's turn based on dice value and history
+            is_same_player = dice_value == 6 and not new_state._should_keep_turn()
+            next_node_type = NodeType.MAX if (
+                (is_same_player and new_state.current_player.color == self.player.color) or
+                (not is_same_player and new_state.current_player.color != self.player.color)
+            ) else NodeType.MIN
+            
             value = self._expectiminimax(new_state, depth - 1, next_node_type)
             expected_value = value * probability
             total_value += expected_value
