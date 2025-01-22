@@ -1,17 +1,14 @@
 import copy
 
 class State:
-    def __init__(self, board, player, action=None, cost=0, depth=0, parent=None):
+    def __init__(self, board, player):
         self.board = copy.deepcopy(board)
         self.current_player = copy.deepcopy(player)
         self.players = [
             copy.deepcopy(self.board.player1),
             copy.deepcopy(self.board.player2)
         ]
-        self.action = action
-        self.cost = cost
-        self.depth = depth
-        self.parent = parent
+        
         self.dice_value = None
         
         self._sync_pieces_with_board()
@@ -67,6 +64,7 @@ class State:
                     if next_pos == path['home_start'] + 5:
                         piece.is_done = True
             
+        new_state.dice_value = None
         return new_state
     
     def apply_dice_roll(self, value: int) -> 'State':
@@ -94,24 +92,19 @@ class StateManager:
     def __init__(self):
         self.states = []
         
-    def create_state(self, board, player, action, cost=0):
+    def create_state(self, board, player):
         """Create a new state from the given information"""
-        depth = len(self.states)
-        parent = self.states[-1] if self.states else None
         
         new_state = State(
             board=board,
             player=player,
-            action=action,
-            cost=cost,
-            depth=depth,
-            parent=parent
+            
         )
         return new_state
     
-    def save_state(self, board, player, action, cost=0):
+    def save_state(self, board, player):
         """Create and save a new state"""
-        new_state = self.create_state(board, player, action, cost)
+        new_state = self.create_state(board, player)
         self.states.append(new_state)
         return new_state
     

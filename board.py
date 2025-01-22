@@ -197,7 +197,6 @@ class Board:
         self.current_player = self.player2 if self.current_player == self.player1 else self.player1
 
     def move_piece(self, piece, steps):
-        print(f"Moving piece {piece.number} with {steps} steps  ss")
         print(f"piece position {piece.position}")
         next_pos = self.get_next_position(piece.position, steps, piece.color)
         path = self.paths[piece.color]

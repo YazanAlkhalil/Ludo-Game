@@ -11,7 +11,7 @@ class Game:
         self.board = Board(player_colors[0], player_colors[1], is_computer)
         self.state_manager = StateManager()
         self.dice = Dice()
-        self.expectiminimax = Expectiminimax(depth=3)
+        self.expectiminimax = Expectiminimax(depth=3, player=self.board.current_player)
     
     def switch_player(self):
         self.board.switch_player()
@@ -30,10 +30,7 @@ class Game:
         current_state = State(
             board=self.board,
             player=current_player,
-            action=None,
-            cost=0,
-            depth=0,
-            parent=None
+            
         )
         current_state.dice_value = dice_value
         
@@ -66,8 +63,7 @@ class Game:
                 self.board.move_piece(piece, steps)
                 
                 # Save the state
-                move = Move(piece=piece, steps=steps)
-                self.state_manager.save_state(self.board, current_player, move, cost=0)
+                self.state_manager.save_state(self.board, current_player)
                 
             except Exception as e:
                 print(f"Error in computer move: {e}")
@@ -80,7 +76,7 @@ class Game:
         
         # Display valid moves
         for idx, (piece, steps) in enumerate(valid_moves):
-            print(f"{idx}: Move piece {piece.number + 1} by {steps} steps")
+            print(f"{idx}: Move piece {piece.number +1} by {steps} steps")
         
         while True:
             try:
@@ -89,8 +85,7 @@ class Game:
                     piece, steps = valid_moves[choice]
                     self.board.move_piece(piece, steps)
                     
-                    move = Move(piece=piece, steps=steps)
-                    self.state_manager.save_state(self.board, self.board.current_player, move, cost=0)
+                    self.state_manager.save_state(self.board, self.board.current_player)
                     break
                 else:
                     print("Invalid choice. Please try again.")
