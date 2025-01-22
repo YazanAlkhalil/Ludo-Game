@@ -69,61 +69,63 @@ class Expectiminimax:
         valid_moves = state.get_valid_moves()
         if not valid_moves:
             value = self._evaluate(state)
-            print(f"{indent}NO MOVES AVAILABLE: {value}")
+            print(f"{indent}[MAX] No moves available - Score: {value:.2f}")
             return value
             
         values = []
+        moves_info = []
         for piece, steps in valid_moves:
             new_state = state.apply_move(Move(piece, steps))
-            # After player move, it's a chance node
             value = self._expectiminimax(new_state, depth - 1, NodeType.CHANCE)
             values.append(value)
-            print(f"{indent}Move piece {piece.number} by {steps} steps -> value: {value}")
+            moves_info.append((piece, steps, value))
+            print(f"{indent}[MAX] Piece {piece.number} ({piece.color}) at pos {piece.position} → {piece.position + steps} (steps: {steps}) - Score: {value:.2f}")
         
         best_value = max(values)
-        print(f"{indent}MAX chose: {best_value}")
+        best_move = next(move for move in moves_info if move[2] == best_value)
+        print(f"{indent}[MAX] Selected: Piece {best_move[0].number} with {best_move[1]} steps (Score: {best_value:.2f})")
         return best_value
     
     def _min_value(self, state: State, depth: int, indent: str) -> float:
         valid_moves = state.get_valid_moves()
         if not valid_moves:
             value = self._evaluate(state)
-            print(f"{indent}NO MOVES AVAILABLE: {value}")
+            print(f"{indent}[MIN] No moves available - Score: {value:.2f}")
             return value
             
         values = []
+        moves_info = []
         for piece, steps in valid_moves:
             new_state = state.apply_move(Move(piece, steps))
-            # After opponent move, it's a chance node
             value = self._expectiminimax(new_state, depth - 1, NodeType.CHANCE)
             values.append(value)
-            print(f"{indent}Move piece {piece.number} by {steps} steps -> value: {value}")
+            moves_info.append((piece, steps, value))
+            print(f"{indent}[MIN] Piece {piece.number} ({piece.color}) at pos {piece.position} → {piece.position + steps} (steps: {steps}) - Score: {value:.2f}")
         
         worst_value = min(values)
-        print(f"{indent}MIN chose: {worst_value}")
+        worst_move = next(move for move in moves_info if move[2] == worst_value)
+        print(f"{indent}[MIN] Selected: Piece {worst_move[0].number} with {worst_move[1]} steps (Score: {worst_value:.2f})")
         return worst_value
     
     def _chance_value(self, state: State, depth: int, indent: str) -> float:
         total_value = 0
-        print(f"{indent}Rolling dice (1-6):")
+        print(f"{indent}[CHANCE] Evaluating dice rolls for {state.current_player.color}:")
         
+        dice_outcomes = []
         for dice_value in range(1, 7):
             probability = 1/6
             new_state = state.apply_dice_roll(dice_value)
-            
-            # Check if it's still the same player's turn based on dice value and history
-            is_same_player = dice_value == 6 and not new_state._should_keep_turn()
-            next_node_type = NodeType.MAX if (
-                (is_same_player and new_state.current_player.color == self.player.color) or
-                (not is_same_player and new_state.current_player.color != self.player.color)
-            ) else NodeType.MIN
-            
+            next_node_type = NodeType.MAX if new_state.current_player.color == self.player.color else NodeType.MIN
             value = self._expectiminimax(new_state, depth - 1, next_node_type)
             expected_value = value * probability
             total_value += expected_value
-            print(f"{indent}Dice={dice_value}: value={value}, prob=1/6, expected={expected_value:.2f}")
-        
-        print(f"{indent}CHANCE expected value: {total_value:.2f}")
+            dice_outcomes.append((dice_value, value, expected_value))
+            
+        # Print summary of all dice outcomes
+        print(f"{indent}[CHANCE] Dice roll outcomes:")
+        for dice, value, expected in dice_outcomes:
+            print(f"{indent}  Roll {dice}: Base score = {value:.2f}, Expected = {expected:.2f}")
+        print(f"{indent}[CHANCE] Final expected value: {total_value:.2f}")
         return total_value
     
     def _evaluate(self, state: State) -> float:

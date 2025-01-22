@@ -11,7 +11,7 @@ class Game:
         self.board = Board(player_colors[0], player_colors[1], is_computer)
         self.state_manager = StateManager()
         self.dice = Dice()
-        self.expectiminimax = Expectiminimax(depth=3, player=self.board.current_player)
+        self.expectiminimax = Expectiminimax(depth=4, player=self.board.current_player)
     
     def switch_player(self):
         self.board.switch_player()
