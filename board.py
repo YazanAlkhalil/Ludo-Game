@@ -27,18 +27,15 @@ class Board:
         '''
         
         
-        # إنشاء اللاعبين
+      
         self.player1 = Player(player_color, is_computer_list[0])
         self.player2 = Player(computer_color, is_computer_list[1])
         
-        # تحديد اللاعب الحالي
         self.current_player = self.player1
         
         self._initialize_board()
     
     def _initialize_board(self):
-        """تهيئة اللوحة مع الخلايا الآمنة ونقاط البداية"""
-        # تعيين نقاط البداية كخلايا آمنة
         for color, path in self.paths.items():
             start_pos = path["start"]
             self.cells[start_pos].color = color
@@ -46,7 +43,7 @@ class Board:
     
     def get_cell(self, position: int) -> Cell:
         """Get the cell at the specified position"""
-        if 0 <= position < 76:  # Updated from 72 to 76
+        if 0 <= position < 76:  
             return self.cells[position]
         return None
 
@@ -54,32 +51,23 @@ class Board:
         """Calculate next position considering home path"""
         path = self.paths[color]
         
-        # If piece is in home base
         if current_pos == -1:
-            if steps == 6:  # Can only move out with a 6
+            if steps == 6:
                 return path["start"]
             return -1
         
-        # Calculate next position on main board
         new_pos = current_pos + steps
-        
-        # If piece is already in home path
         if current_pos >= path["home_start"]:
-            # Check if move stays within the color's home path range
             home_end = path["home_start"] + 5
             if new_pos <= home_end:
                 return new_pos
             return -1
-        
-        # Check if piece should enter home path
         if new_pos > path["end"] and current_pos <= path["end"]:
             overflow = new_pos - path["end"] - 1
             home_pos = path["home_start"] + overflow
             if home_pos <= path["home_start"] + 5:
                 return home_pos
             return -1
-        
-        # Normal movement on main board
         if new_pos > 51:
             new_pos = new_pos - 52
 
@@ -88,12 +76,12 @@ class Board:
     def print_board(self):
         """Enhanced board printing with home paths"""
         COLORS = {
-            Color.BLUE: '\033[94m',    # Blue
-            Color.RED: '\033[91m',     # Red
-            Color.GREEN: '\033[92m',   # Green
-            Color.YELLOW: '\033[93m',  # Yellow
-            Color.WHITE: '\033[97m',   # White
-            'RESET': '\033[0m'         # Reset
+            Color.BLUE: '\033[94m',    
+            Color.RED: '\033[91m',     
+            Color.GREEN: '\033[92m',   
+            Color.YELLOW: '\033[93m',  
+            Color.WHITE: '\033[97m',   
+            'RESET': '\033[0m'         
         }
         
         def format_home_cell(path, index):
@@ -106,8 +94,6 @@ class Board:
                 return "·"
             return " "
         
-        # Corrected board template with proper cross pattern
-        # Corrected board template with proper cross pattern
         board_template = [
             "                            ┌───┬───┬───┐       ",
             "                            │ {c49} │ {c50} │ {c51} │       ",
@@ -155,12 +141,10 @@ class Board:
                     return f"{COLORS[cell.color]}{piece_count}{COLORS['RESET']}"
                 return f"{COLORS[cell.color]}0{COLORS['RESET']}"
             
-            # Display piece number if present
             if cell.pieces:
                 piece = cell.pieces[0]
                 return f"{COLORS[piece.color]}{piece.number + 1}{COLORS['RESET']}"
             
-            # Display safe cell symbol if no piece is present
             if cell.is_safe and cell_idx < 52:
                 return f"{COLORS[cell.color]}★{COLORS['RESET']}"
             
@@ -204,7 +188,6 @@ class Board:
         if not piece.can_move(steps, self):
             print('piece cantmove')
             return False
-        # Check if move is valid
         old_pos = piece.position
         new_cell = self.get_cell(next_pos)
 
@@ -215,26 +198,22 @@ class Board:
             return False
         
         captured_opponent = False
-        # Check if we're capturing an opponent's piece
         if new_cell.pieces and new_cell.pieces[0].color != piece.color and not new_cell.is_safe:
             captured_piece = new_cell.pieces[0]
-            captured_piece.position = -1  # Send back to home
+            captured_piece.position = -1 
             captured_piece.is_home = True
             new_cell.pieces.clear()
             captured_opponent = True
         
-        # Remove piece from old position
         if old_pos != -1:
             old_cell = self.get_cell(old_pos)
             if old_cell:
                 old_cell.pieces.remove(piece)
         
-        # Add piece to new position
         new_cell.pieces.append(piece)
         piece.position = next_pos
         piece.is_home = False
 
-        # piece reached end
         if next_pos == path['home_start'] + 5:
             piece.is_done = True
         
@@ -244,7 +223,6 @@ class Board:
         """Get all valid moves for the current player"""
         valid_moves = []
         
-        # Check each piece for valid moves
         for piece in player.pieces:
             if piece.can_move(dice_value, self):
                 valid_moves.append((piece, dice_value))

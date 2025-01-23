@@ -2,7 +2,6 @@ from game import Game
 from color import Color
 
 def setup_game():
-    # Get number of players
     while True:
         try:
             num_players = int(input("Enter number of players (2-4): "))
@@ -12,11 +11,9 @@ def setup_game():
         except ValueError:
             print("Please enter a valid number")
 
-    # Available colors
     available_colors = [Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW]
     players = []
 
-    # Get color for each player
     for i in range(num_players):
         print(f"\nAvailable colors for Player {i+1}:")
         for idx, color in enumerate(available_colors):
@@ -38,57 +35,56 @@ def setup_game():
 
 def main():
      
-    # Get player setup
     players = setup_game()
-    
-    # تقسيم players إلى قائمتين
     player_colors = [p[0] for p in players]
     is_computer = [p[1] for p in players]
-    
-    # إنشاء اللعبة مع المعاملات الصحيحة
     game = Game(player_colors, is_computer)
     game.board.print_board()
-    consecutive_rolls = 0   
     COLORS = {
-        Color.BLUE: '\033[94m',    # Blue
-        Color.RED: '\033[91m',     # Red
-        Color.GREEN: '\033[92m',   # Green
-        Color.YELLOW: '\033[93m',  # Yellow
-        Color.WHITE: '\033[97m',   # White
-        'RESET': '\033[0m'         # Reset
+        Color.BLUE: '\033[94m',   
+        Color.RED: '\033[91m',    
+        Color.GREEN: '\033[92m',  
+        Color.YELLOW: '\033[93m', 
+        Color.WHITE: '\033[97m',  
+        'RESET': '\033[0m'        
     }
     
     while True:
         current_player = game.board.current_player
-        dice_value = game.dice.roll()
-        print(f"\nPlayer {COLORS[current_player.color]}{current_player.color.value}{COLORS['RESET']} rolled a {dice_value}")
+        consecutive_sixes = 0  
+        keep_rolling = True
         
-        valid_moves = game.board.get_valid_moves(current_player, dice_value)
-        if valid_moves:
-            if current_player.is_computer:
-                game.computer_move(current_player, dice_value)
+        while keep_rolling:
+            dice_value = game.dice.roll()
+            print(f"\nPlayer {COLORS[current_player.color]}{current_player.color.value}{COLORS['RESET']} rolled a {dice_value}")
+            
+            if dice_value == 6:
+                consecutive_sixes += 1
+                if consecutive_sixes >= 3:
+                    print("Three consecutive 6s! Turn forfeited.")
+                    keep_rolling = False
+                    game.board.switch_player()
+                    break
             else:
-                game.player_move(current_player, dice_value)
-        else:
+                keep_rolling = False  
+            
+            valid_moves = game.board.get_valid_moves(current_player, dice_value)
+            if valid_moves:
+                if current_player.is_computer:
+                    game.computer_move(current_player, dice_value)
+                else:
+                    game.player_move(current_player, dice_value)
+            else:
                 print("No valid moves available")
+            
+            game.board.print_board()
+            
+            if current_player.is_winning():
+                print(f"\nPlayer {current_player.color.value} wins!")
+                return
         
-        game.board.print_board()
-        
-        
-
-        if current_player.is_winning():
-            print(f"\nPlayer {current_player.color.value} wins!")
-            break
-        
-        if dice_value == 6:
-            consecutive_rolls += 1
-            if consecutive_rolls >= 3:
-                print("Maximum consecutive rolls reached.")
-                game.board.switch_player()
-                consecutive_rolls = 0
-        else:
+        if dice_value != 6 or consecutive_sixes >= 3:
             game.board.switch_player()
-            consecutive_rolls = 0
 
 if __name__ == "__main__":
     main()

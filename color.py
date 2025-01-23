@@ -12,9 +12,8 @@ class Color(Enum):
     
     @property
     def symbol(self):
-        """Get single-character symbol for the color"""
         return {
-            "blue": "B",    # يمكنك استخدام أحرف بدلاً من الرموز التعبيرية
+            "blue": "B",    
             "red": "R",
             "green": "G",
             "yellow": "Y",
